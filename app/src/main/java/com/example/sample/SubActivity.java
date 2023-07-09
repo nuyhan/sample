@@ -3,6 +3,17 @@ package com.example.sample;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+import android.content.Context;
+import android.view.MenuItem;
+
+import androidx.appcompat.app.ActionBar;
+import android.widget.Toast;
+import androidx.core.view.GravityCompat;
+import com.google.android.material.navigation.NavigationView;
+
+
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -19,6 +30,10 @@ import java.util.ArrayList;
 public class SubActivity extends AppCompatActivity {
     private ListView listView;
     private ArrayList<String> data;
+
+    private DrawerLayout mDrawerLayout;
+    private Context context = this;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +56,39 @@ public class SubActivity extends AppCompatActivity {
 
         Button addButton = findViewById(R.id.add_button);
         addButton.setOnClickListener(v -> showAddItemDialog()); // "+(추가)" 버튼 클릭 시 다이얼로그 표시
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+       // setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowTitleEnabled(false); // 기존 title 지우기
+        //actionBar.setDisplayHomeAsUpEnabled(true); // 뒤로가기 버튼 만들기
+        //actionBar.setHomeAsUpIndicator(R.drawable.view_menu_icon); //뒤로가기 버튼 이미지 지정
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem menuItem) {
+                menuItem.setChecked(true);
+                mDrawerLayout.closeDrawers();
+
+                int id = menuItem.getItemId();
+                String title = menuItem.getTitle().toString();
+
+                if(id == R.id.account){
+                    Toast.makeText(context, title + ": 계정 정보를 확인합니다.", Toast.LENGTH_SHORT).show();
+                }
+                else if(id == R.id.setting){
+                    Toast.makeText(context, title + ": 설정 정보를 확인합니다.", Toast.LENGTH_SHORT).show();
+                }
+                else if(id == R.id.logout){
+                    Toast.makeText(context, title + ": 로그아웃 시도중", Toast.LENGTH_SHORT).show();
+                }
+
+                return true;
+            }
+        });
     }
 
     private void showAddItemDialog() {
@@ -104,6 +152,10 @@ public class SubActivity extends AppCompatActivity {
         });
     }
 
+    public void openDrawer(View view) {
+        mDrawerLayout.openDrawer(GravityCompat.START);
+    }
+
     private void addItem(String newItem, String expiryDate, int quantity) {
         String itemDetails = newItem + " - 유통 기한: " + expiryDate + ", 수량: " + quantity;
         data.add(itemDetails); // data에 새로운 아이템 추가
@@ -111,4 +163,23 @@ public class SubActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) listView.getAdapter();
         adapter.notifyDataSetChanged(); // 어댑터에 데이터 변경 알림
     }
+
+
+
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case android.R.id.home:{ // 왼쪽 상단 버튼 눌렀을 때
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+
+
 }
