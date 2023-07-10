@@ -13,7 +13,7 @@ import android.widget.Toast;
 import androidx.core.view.GravityCompat;
 import com.google.android.material.navigation.NavigationView;
 
-
+import android.content.Intent;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -61,8 +61,6 @@ public class SubActivity extends AppCompatActivity {
        // setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowTitleEnabled(false); // 기존 title 지우기
-        //actionBar.setDisplayHomeAsUpEnabled(true); // 뒤로가기 버튼 만들기
-        //actionBar.setHomeAsUpIndicator(R.drawable.view_menu_icon); //뒤로가기 버튼 이미지 지정
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -76,14 +74,18 @@ public class SubActivity extends AppCompatActivity {
                 int id = menuItem.getItemId();
                 String title = menuItem.getTitle().toString();
 
-                if(id == R.id.account){
-                    Toast.makeText(context, title + ": 계정 정보를 확인합니다.", Toast.LENGTH_SHORT).show();
-                }
-                else if(id == R.id.setting){
-                    Toast.makeText(context, title + ": 설정 정보를 확인합니다.", Toast.LENGTH_SHORT).show();
-                }
-                else if(id == R.id.logout){
-                    Toast.makeText(context, title + ": 로그아웃 시도중", Toast.LENGTH_SHORT).show();
+                if (id == R.id.ingredient) {
+                    // 'ingredient' 메뉴 아이템을 선택한 경우, IngredientActivity로 이동
+                    Intent intent = new Intent(SubActivity.this, SubActivity.class);
+                    startActivity(intent);
+                } else if (id == R.id.camera) {
+                    // 'camera' 메뉴 아이템을 선택한 경우, CameraActivity로 이동
+                    Intent intent = new Intent(SubActivity.this, CameraActivity.class);
+                    startActivity(intent);
+                } else if (id == R.id.recipe_recommend) {
+                    // 'recipe_recommend' 메뉴 아이템을 선택한 경우, RecipeRecommendActivity로 이동
+                    Intent intent = new Intent(SubActivity.this, RecipeActivity.class);
+                    startActivity(intent);
                 }
 
                 return true;

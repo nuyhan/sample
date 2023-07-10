@@ -26,6 +26,10 @@
         <activity
             android:name=".SubActivity"
             android:exported="true" />
+
+        <activity android:name=".RecipeActivity" />
+
+        <activity android:name=".CameraActivity" />
     </application>
 
 </manifest>
