@@ -18,6 +18,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 
+
 public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
 
@@ -60,19 +61,19 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
-                        Toast.makeText(MainActivity.this, "로그인에 성공했습니다.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "로그인에 성공했습니다.", Toast.LENGTH_LONG).show();
                         // 로그인 성공 후, 원하는 화면으로 전환
                         startActivity(new Intent(MainActivity.this, SubActivity.class));
 
                     } else {
                         if (task.getException().toString() != null) {
-                            Toast.makeText(MainActivity.this, "로그인에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "로그인에 실패했습니다.", Toast.LENGTH_LONG).show();
                         }
                     }
                 }
             });
         } else {
-            Toast.makeText(MainActivity.this, "이메일과 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "이메일과 비밀번호를 입력해주세요.", Toast.LENGTH_LONG).show();
         }
     }
 }

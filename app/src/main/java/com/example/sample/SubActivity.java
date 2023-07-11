@@ -155,10 +155,6 @@ public class SubActivity extends AppCompatActivity {
         });
     }
 
-    public void openDrawer(View view) {
-        mDrawerLayout.openDrawer(GravityCompat.START);
-    }
-
     private void addItem(String newItem, String expiryDate, int quantity) {
         String itemDetails = newItem + " - 유통 기한: " + expiryDate + ", 수량: " + quantity;
         data.add(itemDetails); // data에 새로운 아이템 추가
@@ -168,8 +164,9 @@ public class SubActivity extends AppCompatActivity {
     }
 
 
-
-
+    public void openDrawer(View view) {
+        mDrawerLayout.openDrawer(GravityCompat.START);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -181,8 +178,4 @@ public class SubActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
-
-
-
 }
