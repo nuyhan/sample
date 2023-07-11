@@ -5,17 +5,14 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:windowSoftInputMode="adjustResize">>
+    android:windowSoftInputMode="adjustResize">
 
     <EditText
         android:id="@+id/edit_item_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="상품 이름"
-        android:imeOptions="actionSearch"
-        android:inputType="text"
-
-        />
+        android:inputType="text" />
 
     <DatePicker
         android:id="@+id/datepicker_expiry"
