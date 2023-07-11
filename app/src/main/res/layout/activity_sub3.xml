@@ -55,7 +55,7 @@
             android:layout_marginTop="100dp"
             android:ems="10"
             android:hint="원하는 레시피를 입력하세요."
-            android:inputType="textEmailAddress"
+            android:inputType="text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.255"
             app:layout_constraintStart_toStartOf="parent"
