@@ -24,7 +24,11 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
+
+import com.example.sample.ProductItem;
 
 import java.util.ArrayList;
 
@@ -115,6 +119,11 @@ public class SubActivity extends AppCompatActivity {
                         TextView textQuantity = dialogView.findViewById(R.id.text_quantity);
                         int quantity = Integer.parseInt(textQuantity.getText().toString()); // 수량을 가져옴
 
+
+                        // Firebase Realtime Database에 생성된 ProductItem을 저장합니다.
+                        saveToFirebase(new ProductItem(itemName, expiryDate, quantity));
+
+
                         addItem(itemName, expiryDate, quantity); // 아이템 추가 메서드 호출
                     }
                 })
@@ -164,6 +173,18 @@ public class SubActivity extends AppCompatActivity {
     }
 
 
+    private void saveToFirebase(ProductItem productItem) {
+        // Firebase에서 DatabaseReference 인스턴스를 가져옵니다.
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("productItems");
+
+        // 새로운 아이템에 대한 고유 키 생성
+        String itemId = databaseReference.push().getKey();
+
+        // 고유 키를 사용하여 데이터 저장
+        databaseReference.child(itemId).setValue(productItem);
+    }
+
+
     public void openDrawer(View view) {
         mDrawerLayout.openDrawer(GravityCompat.START);
     }
@@ -178,4 +199,5 @@ public class SubActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
 }
