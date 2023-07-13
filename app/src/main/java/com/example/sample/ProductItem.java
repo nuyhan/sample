@@ -13,4 +13,14 @@ public class ProductItem {
         this.expiryDate = expiryDate;
         this.quantity = quantity;
     }
+
+    public String getName() {
+        return name;
+    }
+    public String getExpiryDate() {
+        return expiryDate;
+    }
+    public int getQuantity() {
+        return quantity;
+    }
 }

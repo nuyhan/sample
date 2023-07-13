@@ -64,6 +64,11 @@ public class RecipeActivity extends AppCompatActivity {
                     // 'recipe_recommend' 메뉴 아이템을 선택한 경우, RecipeRecommendActivity로 이동
                     Intent intent = new Intent(RecipeActivity.this,RecipeActivity.class);
                     startActivity(intent);
+                } else if (id == R.id.logout) {
+                    // 'logout' 메뉴 아이템을 선택한 경우, MainActivity로 이동
+                    Intent intent = new Intent(RecipeActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
                 }
 
                 return true;
