@@ -27,9 +27,6 @@ import com.example.sample.NavigationActivity;
 public class RecipeActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private Context context = this;
-    DrawerLayout drawerLayout;
-    ImageView menu;
-    LinearLayout home,settings,logout,notice,recipe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +39,6 @@ public class RecipeActivity extends AppCompatActivity {
         actionBar.setDisplayShowTitleEnabled(false); // 기존 title 지우기
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-
         NavigationView navigationView = findViewById(R.id.nav_view);
         NavigationActivity navigationActivity = new NavigationActivity(this, mDrawerLayout);
         navigationView.setNavigationItemSelectedListener(navigationActivity);

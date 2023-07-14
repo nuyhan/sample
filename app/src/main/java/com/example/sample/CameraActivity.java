@@ -30,9 +30,7 @@ import com.example.sample.NavigationActivity;
 public class CameraActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private Context context = this;
-    DrawerLayout drawerLayout;
-    ImageView menu;
-    LinearLayout home,settings,logout,notice,recipe;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
