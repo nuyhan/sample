@@ -24,7 +24,7 @@ import android.net.Uri;
 
 import com.example.sample.SubActivity;
 import com.example.sample.CameraActivity;
-
+import com.example.sample.NavigationActivity;
 
 
 public class CameraActivity extends AppCompatActivity {
@@ -46,37 +46,10 @@ public class CameraActivity extends AppCompatActivity {
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(MenuItem menuItem) {
-                menuItem.setChecked(true);
-                mDrawerLayout.closeDrawers();
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        NavigationActivity navigationActivity = new NavigationActivity(this, mDrawerLayout);
+        navigationView.setNavigationItemSelectedListener(navigationActivity);
 
-                int id = menuItem.getItemId();
-                String title = menuItem.getTitle().toString();
-                if (id == R.id.ingredient) {
-                    // 'ingredient' 메뉴 아이템을 선택한 경우, IngredientActivity로 이동
-                    Intent intent = new Intent(CameraActivity.this, SubActivity.class);
-                    startActivity(intent);
-                } else if (id == R.id.camera) {
-                    // 'camera' 메뉴 아이템을 선택한 경우, CameraActivity로 이동
-                    Intent intent = new Intent(CameraActivity.this, CameraActivity.class);
-                    startActivity(intent);
-                } else if (id == R.id.recipe_recommend) {
-                    // 'recipe_recommend' 메뉴 아이템을 선택한 경우, RecipeRecommendActivity로 이동
-                    Intent intent = new Intent(CameraActivity.this,RecipeActivity.class);
-                    startActivity(intent);
-                } else if (id == R.id.logout) {
-                    // 'logout' 메뉴 아이템을 선택한 경우, MainActivity로 이동
-                    Intent intent = new Intent(CameraActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
-
-                return true;
-            }
-        });
 
         ImageButton cameraButton = findViewById(R.id.camera_button);
         cameraButton.setOnClickListener(new View.OnClickListener() {

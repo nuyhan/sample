@@ -1,4 +1,4 @@
- package com.example.sample;
+package com.example.sample;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,14 +36,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-
+import com.example.sample.NavigationActivity;
 import com.example.sample.ProductItem;
 
 import java.util.ArrayList;
-
-
-
-
 
 
 public class SubActivity extends AppCompatActivity {
@@ -84,33 +80,9 @@ public class SubActivity extends AppCompatActivity {
         mDrawerLayout = findViewById(R.id.drawer_layout);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(MenuItem menuItem) {
-                menuItem.setChecked(true);
-                mDrawerLayout.closeDrawers();
+        NavigationActivity navigationActivity = new NavigationActivity(this, mDrawerLayout);
+        navigationView.setNavigationItemSelectedListener(navigationActivity);
 
-                int id = menuItem.getItemId();
-                String title = menuItem.getTitle().toString();
-
-                if (id == R.id.ingredient) {
-                    Intent intent = new Intent(SubActivity.this, SubActivity.class);
-                    startActivity(intent);
-                } else if (id == R.id.camera) {
-                    Intent intent = new Intent(SubActivity.this, CameraActivity.class);
-                    startActivity(intent);
-                } else if (id == R.id.recipe_recommend) {
-                    Intent intent = new Intent(SubActivity.this, RecipeActivity.class);
-                    startActivity(intent);
-                } else if (id == R.id.logout) {
-                    Intent intent = new Intent(SubActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
-
-                return true;
-            }
-        });
     }
 
     private void loadAndDisplayData() {
