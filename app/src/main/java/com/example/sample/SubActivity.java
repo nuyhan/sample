@@ -25,6 +25,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import android.view.ViewGroup;
+import androidx.annotation.Nullable;
 
 
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -41,7 +43,7 @@ import com.example.sample.NavigationActivity;
 import com.example.sample.ProductItem;
 
 import java.util.ArrayList;
-
+import java.util.Arrays;
 
 public class SubActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
@@ -54,6 +56,7 @@ public class SubActivity extends AppCompatActivity {
     private Context context = this;
     private String clickedItemKey; // clickedItemKey 변수를 선언합니다.
 
+    private boolean[] itemClicked; // 아이템 클릭 여부를 저장하는 배열
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,9 +122,29 @@ public class SubActivity extends AppCompatActivity {
             });
         }
 
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, data) {
+            @NonNull
+            @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+
+                // 아이템의 클릭 여부에 따라 배경색을 변경합니다.
+                if (itemClicked[position]) {
+                    view.setBackgroundColor(getResources().getColor(R.color.clicked_item_color));
+                } else {
+                    view.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+                }
+
+                return view;
+            }
+        };
+
+        listView.setAdapter(adapter);
+
         // 삭제 버튼의 클릭 이벤트 핸들러
         Button deleteButton = findViewById(R.id.delete_button);
         deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
+
     }
 
 
@@ -260,12 +283,20 @@ public class SubActivity extends AppCompatActivity {
     private void addItem(String newItem, String expiryDate, int quantity, String key) {
         String itemDetails = newItem + " - 유통 기한: " + expiryDate + ", 수량: " + quantity;
         data.add(itemDetails);
+
+        // 새로운 아이템이 추가될 때마다 itemClicked 배열을 업데이트합니다.
+        itemClicked = new boolean[data.size()];
+        Arrays.fill(itemClicked, false);
+
         adapter.notifyDataSetChanged();
 
         // 클릭된 아이템의 키 값을 저장합니다.
         listView.setOnItemClickListener((parent, view, position, id) -> {
             clickedItemKey = key;
-            // 선택된 아이템의 시각적 표시를 변경하거나 다른 동작을 수행할 수 있습니다.
+
+            // 아이템의 클릭 여부를 업데이트하고 어댑터를 통해 리스트뷰를 업데이트합니다.
+            itemClicked[position] = !itemClicked[position];
+            adapter.notifyDataSetChanged();
         });
     }
 
