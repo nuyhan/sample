@@ -26,6 +26,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 
+
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -51,6 +52,8 @@ public class SubActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapter;
     private DrawerLayout mDrawerLayout;
     private Context context = this;
+    private String clickedItemKey; // clickedItemKey 변수를 선언합니다.
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,8 +105,8 @@ public class SubActivity extends AppCompatActivity {
                             String itemName = item.getName();
                             String expiryDate = item.getExpiryDate();
                             int quantity = item.getQuantity();
-
-                            addItem(itemName, expiryDate, quantity);
+                            String key = dataSnapshotItem.getKey(); // 상품 항목의 키 값을 가져옴
+                            addItem(itemName, expiryDate, quantity, key); // addItem 메서드 호출 시 key 값을 전달
                         }
                     }
                     adapter.notifyDataSetChanged();
@@ -114,6 +117,49 @@ public class SubActivity extends AppCompatActivity {
                     Toast.makeText(SubActivity.this, "Failed to load data", Toast.LENGTH_SHORT).show();
                 }
             });
+        }
+
+        // 삭제 버튼의 클릭 이벤트 핸들러
+        Button deleteButton = findViewById(R.id.delete_button);
+        deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
+    }
+
+
+
+    private void showDeleteConfirmationDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("상품 삭제")
+                .setMessage("선택한 상품을 삭제하시겠습니까?")
+                .setPositiveButton("삭제", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteSelectedItem();
+                    }
+                })
+                .setNegativeButton("취소", null)
+                .show();
+    }
+
+    private void deleteSelectedItem() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && clickedItemKey != null) {
+            String userUid = currentUser.getUid();
+            String userPath = "users/" + userUid + "/productItems/" + clickedItemKey;
+
+            DatabaseReference userRef = mDatabase.child(userPath);
+            userRef.removeValue()
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Toast.makeText(SubActivity.this, "상품이 삭제되었습니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(SubActivity.this, "상품 삭제에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 
@@ -170,7 +216,7 @@ public class SubActivity extends AppCompatActivity {
                         saveToFirebase(new ProductItem(itemName, expiryDate, quantity));
 
 
-                        addItem(itemName, expiryDate, quantity); // 아이템 추가 메서드 호출
+
                     }
                 })
                 .setNegativeButton("취소", new DialogInterface.OnClickListener() {
@@ -211,10 +257,16 @@ public class SubActivity extends AppCompatActivity {
     }
 
 
-    private void addItem(String newItem, String expiryDate, int quantity) {
+    private void addItem(String newItem, String expiryDate, int quantity, String key) {
         String itemDetails = newItem + " - 유통 기한: " + expiryDate + ", 수량: " + quantity;
         data.add(itemDetails);
         adapter.notifyDataSetChanged();
+
+        // 클릭된 아이템의 키 값을 저장합니다.
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            clickedItemKey = key;
+            // 선택된 아이템의 시각적 표시를 변경하거나 다른 동작을 수행할 수 있습니다.
+        });
     }
 
     @Override
