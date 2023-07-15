@@ -28,6 +28,11 @@ import androidx.annotation.NonNull;
 import android.view.ViewGroup;
 import androidx.annotation.Nullable;
 
+import android.app.NotificationManager;
+import android.os.Build;
+import android.app.NotificationChannel;
+import android.graphics.Color;
+import androidx.core.app.NotificationCompat;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -39,11 +44,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import com.example.sample.NavigationActivity;
-import com.example.sample.ProductItem;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+import java.util.Date;
+
 
 public class SubActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
@@ -54,9 +60,12 @@ public class SubActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapter;
     private DrawerLayout mDrawerLayout;
     private Context context = this;
-    private String clickedItemKey; // clickedItemKey 변수를 선언합니다.
+    private String clickedItemKey;
 
-    private boolean[] itemClicked; // 아이템 클릭 여부를 저장하는 배열
+    private boolean[] itemClicked;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+    private NotificationActivity notificationActivity; // NotificationActivity 인스턴스 추가
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +80,6 @@ public class SubActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, data);
         listView.setAdapter(adapter);
 
-
         // 데이터 로드 및 표시
         loadAndDisplayData();
 
@@ -79,7 +87,6 @@ public class SubActivity extends AppCompatActivity {
         addButton.setOnClickListener(v -> showAddItemDialog());
 
         Toolbar toolbar = findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowTitleEnabled(false);
 
@@ -89,6 +96,7 @@ public class SubActivity extends AppCompatActivity {
         NavigationActivity navigationActivity = new NavigationActivity(this, mDrawerLayout);
         navigationView.setNavigationItemSelectedListener(navigationActivity);
 
+        notificationActivity = new NotificationActivity(this); // NotificationActivity 인스턴스 초기화
     }
 
     private void loadAndDisplayData() {
@@ -101,15 +109,16 @@ public class SubActivity extends AppCompatActivity {
             userRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    data.clear(); // Clear previous data
+                    data.clear();
                     for (DataSnapshot dataSnapshotItem : dataSnapshot.getChildren()) {
                         ProductItem item = dataSnapshotItem.getValue(ProductItem.class);
                         if (item != null) {
                             String itemName = item.getName();
                             String expiryDate = item.getExpiryDate();
                             int quantity = item.getQuantity();
-                            String key = dataSnapshotItem.getKey(); // 상품 항목의 키 값을 가져옴
-                            addItem(itemName, expiryDate, quantity, key); // addItem 메서드 호출 시 key 값을 전달
+                            String key = dataSnapshotItem.getKey();
+                            addItem(itemName, expiryDate, quantity, key);
+                            checkExpiration(item); // 유통기한 체크 메소드 호출
                         }
                     }
                     adapter.notifyDataSetChanged();
@@ -127,45 +136,33 @@ public class SubActivity extends AppCompatActivity {
             @Override
             public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
                 View view = super.getView(position, convertView, parent);
-
-                // 아이템의 클릭 여부에 따라 배경색을 변경합니다.
                 if (itemClicked[position]) {
                     view.setBackgroundColor(getResources().getColor(R.color.clicked_item_color));
                 } else {
                     view.setBackgroundColor(getResources().getColor(android.R.color.transparent));
                 }
-
                 return view;
             }
         };
 
         listView.setAdapter(adapter);
 
-        // 삭제 버튼의 클릭 이벤트 핸들러
         Button deleteButton = findViewById(R.id.delete_button);
         deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
-
     }
-
 
     private void showDeleteConfirmationDialog() {
         if (clickedItemKey != null) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("상품 삭제")
                     .setMessage("선택한 상품을 삭제하시겠습니까?")
-                    .setPositiveButton("삭제", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            deleteSelectedItem();
-                        }
-                    })
+                    .setPositiveButton("삭제", (dialog, which) -> deleteSelectedItem())
                     .setNegativeButton("취소", null)
                     .show();
         } else {
             Toast.makeText(SubActivity.this, "삭제할 상품을 선택해주세요.", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     private void deleteSelectedItem() {
         if (clickedItemKey != null) {
@@ -176,48 +173,26 @@ public class SubActivity extends AppCompatActivity {
 
                 DatabaseReference userRef = mDatabase.child(userPath);
                 userRef.removeValue()
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Toast.makeText(SubActivity.this, "상품이 삭제되었습니다.", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(SubActivity.this, "상품 삭제에 실패했습니다.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        .addOnSuccessListener(aVoid -> Toast.makeText(SubActivity.this, "상품이 삭제되었습니다.", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e -> Toast.makeText(SubActivity.this, "상품 삭제에 실패했습니다.", Toast.LENGTH_SHORT).show());
             }
         } else {
             Toast.makeText(SubActivity.this, "삭제할 상품을 선택해주세요.", Toast.LENGTH_SHORT).show();
         }
     }
 
-
-
     private void saveToFirebase(ProductItem productItem) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userUid = currentUser.getUid();
-            String userPath = "users/" + userUid + "/productItems"; // 사용자별 경로 생성
+            String userPath = "users/" + userUid + "/productItems";
 
             DatabaseReference userRef = mDatabase.child(userPath);
             String key = userRef.push().getKey();
             if (key != null) {
                 userRef.child(key).setValue(productItem)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Toast.makeText(SubActivity.this, "상품이 추가되었습니다.", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(SubActivity.this, "상품 추가에 실패했습니다.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        .addOnSuccessListener(aVoid -> Toast.makeText(SubActivity.this, "상품이 추가되었습니다.", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e -> Toast.makeText(SubActivity.this, "상품 추가에 실패했습니다.", Toast.LENGTH_SHORT).show());
             }
         }
     }
@@ -228,72 +203,49 @@ public class SubActivity extends AppCompatActivity {
         View dialogView = inflater.inflate(R.layout.dialog_add_item, null);
         builder.setView(dialogView)
                 .setTitle("상품 추가")
-                .setPositiveButton("추가", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        EditText editItemName = dialogView.findViewById(R.id.edit_item_name);
-                        String itemName = editItemName.getText().toString();
+                .setPositiveButton("추가", (dialog, which) -> {
+                    EditText editItemName = dialogView.findViewById(R.id.edit_item_name);
+                    String itemName = editItemName.getText().toString();
 
-                        DatePicker datePicker = dialogView.findViewById(R.id.datepicker_expiry);
-                        int year = datePicker.getYear();
-                        int month = datePicker.getMonth();
-                        int day = datePicker.getDayOfMonth();
-                        String expiryDate = String.format("%04d-%02d-%02d", year, month + 1, day); // 유통 기한을 YYYY-MM-DD 형식으로 변환하여 저장
+                    DatePicker datePicker = dialogView.findViewById(R.id.datepicker_expiry);
+                    int year = datePicker.getYear();
+                    int month = datePicker.getMonth();
+                    int day = datePicker.getDayOfMonth();
+                    String expiryDate = String.format("%04d-%02d-%02d", year, month + 1, day);
 
-                        TextView textQuantity = dialogView.findViewById(R.id.text_quantity);
-                        int quantity = Integer.parseInt(textQuantity.getText().toString()); // 수량을 가져옴
+                    TextView textQuantity = dialogView.findViewById(R.id.text_quantity);
+                    int quantity = Integer.parseInt(textQuantity.getText().toString());
 
-
-                        // Firebase Realtime Database에 생성된 ProductItem을 저장합니다.
-                        saveToFirebase(new ProductItem(itemName, expiryDate, quantity));
-
-
-
-                    }
+                    saveToFirebase(new ProductItem(itemName, expiryDate, quantity));
                 })
-                .setNegativeButton("취소", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
+                .setNegativeButton("취소", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        // 수량 증가 버튼 클릭 이벤트 처리
         Button buttonIncrease = dialogView.findViewById(R.id.button_increase);
-        buttonIncrease.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView textQuantity = dialogView.findViewById(R.id.text_quantity);
-                int quantity = Integer.parseInt(textQuantity.getText().toString());
-                quantity++;
+        buttonIncrease.setOnClickListener(v -> {
+            TextView textQuantity = dialogView.findViewById(R.id.text_quantity);
+            int quantity = Integer.parseInt(textQuantity.getText().toString());
+            quantity++;
+            textQuantity.setText(String.valueOf(quantity));
+        });
+
+        Button buttonDecrease = dialogView.findViewById(R.id.button_decrease);
+        buttonDecrease.setOnClickListener(v -> {
+            TextView textQuantity = dialogView.findViewById(R.id.text_quantity);
+            int quantity = Integer.parseInt(textQuantity.getText().toString());
+            if (quantity > 1) {
+                quantity--;
                 textQuantity.setText(String.valueOf(quantity));
             }
         });
-
-        // 수량 감소 버튼 클릭 이벤트 처리
-        Button buttonDecrease = dialogView.findViewById(R.id.button_decrease);
-        buttonDecrease.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView textQuantity = dialogView.findViewById(R.id.text_quantity);
-                int quantity = Integer.parseInt(textQuantity.getText().toString());
-                if (quantity > 1) {
-                    quantity--;
-                    textQuantity.setText(String.valueOf(quantity));
-                }
-            }
-        });
     }
-
 
     private void addItem(String newItem, String expiryDate, int quantity, String key) {
         String itemDetails = newItem + " - 유통 기한: " + expiryDate + ", 수량: " + quantity;
         data.add(itemDetails);
 
-        // 새로운 아이템이 추가될 때마다 itemClicked 배열을 업데이트합니다.
         itemClicked = new boolean[data.size()];
         Arrays.fill(itemClicked, false);
 
@@ -301,17 +253,14 @@ public class SubActivity extends AppCompatActivity {
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
             if (clickedItemKey != null && clickedItemKey.equals(key)) {
-                // 이미 선택된 아이템을 클릭한 경우, 클릭 여부를 해제하고 리스트뷰를 업데이트합니다.
                 clickedItemKey = null;
                 itemClicked[position] = false;
             } else {
                 clickedItemKey = key;
                 itemClicked[position] = true;
             }
-
             adapter.notifyDataSetChanged();
         });
-
     }
 
     @Override
@@ -334,5 +283,26 @@ public class SubActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void checkExpiration(ProductItem item) {
+        try {
+            Date expiryDate = dateFormat.parse(item.getExpiryDate());
+            long timeDifference = expiryDate.getTime() - System.currentTimeMillis();
+
+            if (timeDifference <= 0) { // 유통기한이 지났을 경우
+                // 유통기한이 지난 경우에 대한 처리 코드 추가
+            } else if (timeDifference <= 86400000 && timeDifference > 0) { // 24시간(86400000밀리초) 이내에 유통기한이 끝나는 상품 체크
+                ArrayList<ProductItem> itemList = new ArrayList<>();
+                itemList.add(item);
+                notificationActivity.sendNotification(itemList, "1일 전"); // NotificationActivity의 sendNotification 메서드 호출
+            } else if (timeDifference <= 259200000 && timeDifference > 0) { // 3일(72시간) 이내에 유통기한이 끝나는 상품 체크
+                ArrayList<ProductItem> itemList = new ArrayList<>();
+                itemList.add(item);
+                notificationActivity.sendNotification(itemList, "3일 전"); // NotificationActivity의 sendNotification 메서드 호출
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 }
