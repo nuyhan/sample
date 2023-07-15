@@ -4,6 +4,6 @@
     <string name="nav_header_title">내비게이션 헤더 제목</string>
     <string name="nav_header_subtitle">내비게이션 헤더 부제목</string>
     <string name="menu_icon_description">메뉴</string>
-    <string name="msg_token_fmt">FCM 등록 토큰: %s</string>
+<!--    <string name="msg_token_fmt">FCM 등록 토큰: %s</string>-->
 
 </resources>
