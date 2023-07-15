@@ -51,6 +51,7 @@ import java.util.UUID;
 
 
 
+
 public class RecipeActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private Context context = this;
@@ -59,7 +60,7 @@ public class RecipeActivity extends AppCompatActivity {
     ProgressDialog progressDialog;
     private ActivityResultLauncher<Intent> someActivityResultLauncher;
     Intent data;
-    TextToSpeech textToSpeech;
+
 
     int paragraphCount;
     public String USER_AGENT = "(Android " + Build.VERSION.RELEASE + ") Chrome/110.0.5481.63 Mobile";
@@ -108,14 +109,6 @@ public class RecipeActivity extends AppCompatActivity {
                 }
             }
         });
-        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status != TextToSpeech.ERROR) {
-                    textToSpeech.setLanguage(Locale.getDefault());
-                }
-            }
-        });
 
         UtteranceProgressListener utteranceProgressListener = new UtteranceProgressListener() {
             @Override
@@ -134,7 +127,6 @@ public class RecipeActivity extends AppCompatActivity {
             }
         };
 
-        textToSpeech.setOnUtteranceProgressListener(utteranceProgressListener);
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -167,13 +159,6 @@ public class RecipeActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.navi_menu, menu);
-
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case android.R.id.home:{ // 왼쪽 상단 버튼 눌렀을 때
@@ -184,56 +169,6 @@ public class RecipeActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void onSpeakerPressed() {
-        String allParagraph, paragraphLength;
-
-        try {
-
-            allParagraph = "var paragraphs = document.getElementsByTagName('p');"
-                    + "var combinedText='';"
-                    + "for (var i =" + paragraphCount + "-1; i < paragraphs.length; i++) {"
-                    + "combinedText+= paragraphs[i].textContent;"
-                    + " }combinedText;";
-
-            webView.evaluateJavascript(allParagraph, new ValueCallback<String>() {
-                @Override
-                public void onReceiveValue(String value) {
-
-
-                    String paragraphString = value;
-                    String utteranceId = UUID.randomUUID().toString();
-                    textToSpeech.speak(paragraphString, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
-
-                }
-            });
-            paragraphLength = "(function() { return document.getElementsByTagName('p').length; })();";
-            webView.evaluateJavascript(paragraphLength, new ValueCallback<String>() {
-                @Override
-                public void onReceiveValue(String value) {
-                    paragraphCount = Integer.parseInt(value);
-
-                }
-            });
-
-
-        } catch (Exception e) {
-            Toast.makeText(RecipeActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void onMicPressed() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak Something");
-
-        try {
-            someActivityResultLauncher.launch(intent);
-            webView.requestFocus();
-        } catch (Exception e) {
-            Toast.makeText(RecipeActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
 
     public void closeApp() {
 
@@ -277,21 +212,7 @@ public class RecipeActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        try {
-            String str = data.getStringArrayListExtra("android.speech.extra.RESULTS").get(0);
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("(function() { var d = document.getElementsByTagName('textarea').length; document.getElementsByTagName('textarea')[d-1].value='");
-            stringBuilder.append(str);
-            stringBuilder.append("';document.querySelector('button.absolute').disabled = false;");
-            stringBuilder.append("document.querySelector('button.absolute').click(); })();");
-            webView.evaluateJavascript(stringBuilder.toString(), null);
-        } catch (Exception e) {
-            Toast.makeText(RecipeActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
+
 
 
 
