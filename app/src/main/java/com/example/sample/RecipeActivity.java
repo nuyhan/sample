@@ -15,9 +15,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Build;
-import android.speech.RecognizerIntent;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -59,7 +56,6 @@ public class RecipeActivity extends AppCompatActivity {
     ProgressBar progressBar;
     ProgressDialog progressDialog;
     private ActivityResultLauncher<Intent> someActivityResultLauncher;
-    Intent data;
 
 
     int paragraphCount;
@@ -100,32 +96,6 @@ public class RecipeActivity extends AppCompatActivity {
         webView.setWebViewClient(new MyWebViewClient());
         webView.loadUrl("https://chat.openai.com");
 
-        someActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-            @Override
-            public void onActivityResult(ActivityResult result) {
-                if (result.getResultCode() == Activity.RESULT_OK) {
-                    // There are no request codes
-                    data = result.getData();
-                }
-            }
-        });
-
-        UtteranceProgressListener utteranceProgressListener = new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {
-
-            }
-
-            @Override
-            public void onDone(String utteranceId) {
-
-            }
-
-            @Override
-            public void onError(String utteranceId) {
-
-            }
-        };
 
 
         webView.setWebChromeClient(new WebChromeClient() {
@@ -171,7 +141,6 @@ public class RecipeActivity extends AppCompatActivity {
 
 
     public void closeApp() {
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Are you sure you want to Exit ?").setCancelable(false).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
@@ -211,9 +180,4 @@ public class RecipeActivity extends AppCompatActivity {
 
         }
     }
-
-
-
-
-
 }
