@@ -47,8 +47,6 @@ import java.util.Locale;
 import java.util.UUID;
 
 
-
-
 public class RecipeActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private Context context = this;
@@ -97,17 +95,14 @@ public class RecipeActivity extends AppCompatActivity {
         webView.loadUrl("https://chat.openai.com");
 
 
-
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
-
                 progressBar.setProgress(newProgress);
                 progressDialog.show();
                 if (newProgress == 100) {
                     progressDialog.dismiss();
                 }
-
                 super.onProgressChanged(view, newProgress);
             }
         });
@@ -122,7 +117,6 @@ public class RecipeActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (webView.canGoBack()) {
             webView.goBack();
-
         } else {
             closeApp();
         }
