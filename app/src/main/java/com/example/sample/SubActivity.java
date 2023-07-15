@@ -148,43 +148,52 @@ public class SubActivity extends AppCompatActivity {
     }
 
 
-
     private void showDeleteConfirmationDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("상품 삭제")
-                .setMessage("선택한 상품을 삭제하시겠습니까?")
-                .setPositiveButton("삭제", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        deleteSelectedItem();
-                    }
-                })
-                .setNegativeButton("취소", null)
-                .show();
-    }
-
-    private void deleteSelectedItem() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null && clickedItemKey != null) {
-            String userUid = currentUser.getUid();
-            String userPath = "users/" + userUid + "/productItems/" + clickedItemKey;
-
-            DatabaseReference userRef = mDatabase.child(userPath);
-            userRef.removeValue()
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+        if (clickedItemKey != null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("상품 삭제")
+                    .setMessage("선택한 상품을 삭제하시겠습니까?")
+                    .setPositiveButton("삭제", new DialogInterface.OnClickListener() {
                         @Override
-                        public void onSuccess(Void aVoid) {
-                            Toast.makeText(SubActivity.this, "상품이 삭제되었습니다.", Toast.LENGTH_SHORT).show();
+                        public void onClick(DialogInterface dialog, int which) {
+                            deleteSelectedItem();
                         }
                     })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(SubActivity.this, "상품 삭제에 실패했습니다.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    .setNegativeButton("취소", null)
+                    .show();
+        } else {
+            Toast.makeText(SubActivity.this, "삭제할 상품을 선택해주세요.", Toast.LENGTH_SHORT).show();
         }
     }
+
+
+    private void deleteSelectedItem() {
+        if (clickedItemKey != null) {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                String userUid = currentUser.getUid();
+                String userPath = "users/" + userUid + "/productItems/" + clickedItemKey;
+
+                DatabaseReference userRef = mDatabase.child(userPath);
+                userRef.removeValue()
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(SubActivity.this, "상품이 삭제되었습니다.", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(SubActivity.this, "상품 삭제에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
+        } else {
+            Toast.makeText(SubActivity.this, "삭제할 상품을 선택해주세요.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
 
     private void saveToFirebase(ProductItem productItem) {
@@ -290,14 +299,19 @@ public class SubActivity extends AppCompatActivity {
 
         adapter.notifyDataSetChanged();
 
-        // 클릭된 아이템의 키 값을 저장합니다.
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            clickedItemKey = key;
+            if (clickedItemKey != null && clickedItemKey.equals(key)) {
+                // 이미 선택된 아이템을 클릭한 경우, 클릭 여부를 해제하고 리스트뷰를 업데이트합니다.
+                clickedItemKey = null;
+                itemClicked[position] = false;
+            } else {
+                clickedItemKey = key;
+                itemClicked[position] = true;
+            }
 
-            // 아이템의 클릭 여부를 업데이트하고 어댑터를 통해 리스트뷰를 업데이트합니다.
-            itemClicked[position] = !itemClicked[position];
             adapter.notifyDataSetChanged();
         });
+
     }
 
     @Override
