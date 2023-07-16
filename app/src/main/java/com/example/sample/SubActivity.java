@@ -290,16 +290,16 @@ public class SubActivity extends AppCompatActivity {
             Date expiryDate = dateFormat.parse(item.getExpiryDate());
             long timeDifference = expiryDate.getTime() - System.currentTimeMillis();
 
-            if (timeDifference <= 0) { // 유통기한이 지났을 경우
+            if (timeDifference <= 0) {
                 // 유통기한이 지난 경우에 대한 처리 코드 추가
-            } else if (timeDifference <= 86400000 && timeDifference > 0) { // 24시간(86400000밀리초) 이내에 유통기한이 끝나는 상품 체크
+            } else if (timeDifference <= 86400000 && timeDifference > 0) {
                 ArrayList<ProductItem> itemList = new ArrayList<>();
                 itemList.add(item);
-                notificationActivity.sendNotification(itemList, "1일 전"); // NotificationActivity의 sendNotification 메서드 호출
-            } else if (timeDifference <= 259200000 && timeDifference > 0) { // 3일(72시간) 이내에 유통기한이 끝나는 상품 체크
+                notificationActivity.sendNotification(itemList, "1일 전");
+            } else if (timeDifference <= 259200000 && timeDifference > 0) {
                 ArrayList<ProductItem> itemList = new ArrayList<>();
                 itemList.add(item);
-                notificationActivity.sendNotification(itemList, "3일 전"); // NotificationActivity의 sendNotification 메서드 호출
+                notificationActivity.sendNotification(itemList, "3일 전"); // Channel Name 제거
             }
         } catch (ParseException e) {
             e.printStackTrace();
